@@ -1,4 +1,5 @@
 #include <BlePos300.h>
+#include <jpeg.h>
 
 // BLE server service UUID.
 static BLEUUID serviceUUID("0000fff0-0000-1000-8000-00805f9b34fb");
@@ -105,8 +106,6 @@ class MyAdvertisedDeviceCallbacks: public BLEAdvertisedDeviceCallbacks {
     Serial.print("BLE Advertised Device found: ");
     Serial.println(advertisedDevice.toString().c_str());
 
-    
-
     // We have found a device, let us now see if it contains the service we are looking for.
     if (advertisedDevice.haveServiceUUID() &&
         advertisedDevice.haveName() &&
@@ -121,6 +120,8 @@ class MyAdvertisedDeviceCallbacks: public BLEAdvertisedDeviceCallbacks {
 
 void BlePos300::setup() {
   BLEDevice::init("");
+
+  M5.Lcd.drawJpg(connecting, sizeof(connecting), 100, 105, 120, 30);
 
   BLEScan* pBLEScan = BLEDevice::getScan();
   pBLEScan->setAdvertisedDeviceCallbacks(new MyAdvertisedDeviceCallbacks());

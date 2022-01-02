@@ -1,7 +1,9 @@
-#include <M5Stack.h>
-#include <BlePos300.h>
+#include <Pos300Disp.h>
 
-String ff_20 = "font/pos300font-20"; // without Ext
+//String ff_20 = "font/pos300font-20"; // without Ext
+
+DispFrame *mDisp = NULL;
+DISP_STATUS mStatus = DISP_STATUS_NOT_CONNECT;
 
 static void notifyCallback(char* pData) {
     Serial.print("****data: ");
@@ -14,15 +16,37 @@ void setup() {
   blepos300.setup();
   blepos300.setNotifyCallback(notifyCallback);
 
-  M5.Lcd.loadFont(ff_20, SD);
-  M5.Lcd.setCursor(60, 40);
-  M5.Lcd.print("POS-300  データ読取 測定ABC 実測値 範囲");
+  mDisp = new DispFrame();
+
 }
 
 void loop() {
+    BLE_STATUS ble_st;
 
-  blepos300.doConnect();
-  
+  if(mStatus == DISP_STATUS_NOT_CONNECT) {
+    blepos300.doConnect();
+    mStatus = DISP_STATUS_CONNECTING;
+  }
+  else if(mStatus == DISP_STATUS_CONNECTING) {
+    ble_st = blepos300.getStatus();
+    if(ble_st == BLE_STATUS_CONNECTING) {
+      blepos300.doConnect();
+    }
+    else if(ble_st == BLE_STATUS_CONNECTED) {
+      mStatus = DISP_STATUS_MEASURED;
+      mDisp->display_frame();
+    }
+  }
+  else if(mStatus == DISP_STATUS_MEASURED) {
+    ble_st = blepos300.getStatus();
+    if(ble_st == BLE_STATUS_NOT_CONNECT) {
+      mStatus = DISP_STATUS_NOT_CONNECT;
+    }
+    else {
+      // mDisp->display_frame();
+    }
+  }
+
   delay(1000);
 
 }
