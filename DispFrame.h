@@ -3,84 +3,55 @@
 
 #include <M5Stack.h>
 
-struct Frame {
-private:
-  int m_x_pos = 0;
-  int m_y_pos = 0;
-  int m_width = 100;
-  int m_height = 100;
-
-  uint16_t m_frame_color = 0x8F71; // LightGreen
-  uint16_t m_bg_color = 0x8F71; // LightGreen
-  uint16_t m_text_color = BLACK;
-  String m_text;
-
-public:
-  void setPos(int x, int y, int width, int height) {
-    m_x_pos = x;
-    m_y_pos = y;
-    m_width = width;
-    m_height = height;
-  }
-  int getXpos() {return m_x_pos;}
-  int getYpos() {return m_y_pos;}
-  int getWidth() {return m_width;}
-  int getHeight() {return m_height;}
-
-  void setText(char* text) {
-    m_text = text;
-  }
-  String getText() {
-    return m_text;
-  }
-  void setFrameColor(uint16_t color) {
-    m_frame_color = color;
-  }
-  uint16_t getFrameColor() {
-    return m_frame_color;
-  }
-  void setBgColor(uint16_t color) {
-    m_bg_color = color;
-  }
-  uint16_t getBgColor() {
-    return m_bg_color;
-  }
-  void setTextColor(uint16_t color) {
-    m_text_color = color;
-  }
-  uint16_t getTextColor() {
-    return m_text_color;
-  }
-};
-
 typedef enum {
-  TITLE = 0,
-  MEASUARE_A,
-  MEASUARE_B,
-  MEASUARE_C,
-  MEASUARED_VALUE_TITLE,
-  MEASUARED_RANGE_TITLE,
-  MEASUARED_VALUE_A,
+  MEASUARED_VALUE_A = 0,
   MEASUARED_VALUE_B,
   MEASUARED_VALUE_C,
-  MEASUARED_RANGE_A,
-  MEASUARED_RANGE_B,
-  MEASUARED_RANGE_C,
-  FRAME_MAX
-} FRAME_IDX;
+} SELECT_IDX;
+
+#define MEASURE_TITLE_POS_X 20
+#define MEASURE_A_POS_Y 90
+#define MEASURE_B_POS_Y 130
+#define MEASURE_C_POS_Y 170
+
+#define MEASURE_TITLE_WIDTH 70
+#define MEASURE_TITLE_NML_WIDTH 56
+#define MEASURE_TITLE_HEIGHT 30
+#define MEASURE_TITLE_NML_HEIGHT 24
+#define MEASURE_TITLE_POS_X_NML_OFFSET (MEASURE_TITLE_WIDTH - MEASURE_TITLE_NML_WIDTH) / 2
+#define MEASURE_TITLE_POS_Y_NML_OFFSET (MEASURE_TITLE_HEIGHT - MEASURE_TITLE_NML_HEIGHT) / 2
+
+#define MEASURE_VALUE_POS_X 105
+#define MEASURE_VALUE_WIDTH 96
+#define MEASURE_VALUE_HEIGHT 30
+
+#define MEASURE_RANGE_POS_X 212
+#define MEASURE_RANGE_VAL_WIDTH 30
+#define MEASURE_RANGE_DIV_WIDTH 18
+#define MEASURE_RANGE_UNIT_WIDTH 18
+#define MEASURE_RANGE_WIDTH MEASURE_RANGE_VAL_WIDTH * 2 + MEASURE_RANGE_DIV_WIDTH + MEASURE_RANGE_UNIT_WIDTH
+#define MEASURE_RANGE_HEIGHT MEASURE_VALUE_HEIGHT
 
 class DispFrame {
 private:
-  Frame m_Frame[FRAME_MAX];
-
   uint16_t m_bg_color = BLACK;
 
+  uint8_t m_focus_idx = MEASUARED_VALUE_A;
+
+  void display_measure(uint8_t idx);
   void display_frame_fixed();
   void display_frame_measured();
 
 public:
+  DispFrame();
+  void disp_connecting();
   void display_frame();
+  void select_measure_next();
+  void disp_measured(char* data);
+  void disp_range(SELECT_IDX idx);
 
 };
+
+extern DispFrame dispFrame;
 
 #endif // DISPFRAME

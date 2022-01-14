@@ -121,8 +121,6 @@ class MyAdvertisedDeviceCallbacks: public BLEAdvertisedDeviceCallbacks {
 void BlePos300::setup() {
   BLEDevice::init("");
 
-  M5.Lcd.drawJpg(connecting, sizeof(connecting), 100, 105, 120, 30);
-
   BLEScan* pBLEScan = BLEDevice::getScan();
   pBLEScan->setAdvertisedDeviceCallbacks(new MyAdvertisedDeviceCallbacks());
   pBLEScan->setInterval(1349);
