@@ -3,10 +3,12 @@
 
 DISP_STATUS mStatus = DISP_STATUS_NOT_CONNECT;
 
+Keyboard kbd;
+
 static void notifyCallback(char* pData) {
-    Serial.print("****data: ");
-    Serial.println((char*)pData);
-    dispFrame.disp_measured(pData);
+    if(mStatus == DISP_STATUS_MEASURED) {
+      dispFrame.disp_measured(pData);
+    }
 }
 
 void setup() {
@@ -14,11 +16,11 @@ void setup() {
 
   adc_power_acquire(); // ADC Power ON
 
+  dispFrame.init();
   dispFrame.disp_connecting();
 
   blepos300.setup();
   blepos300.setNotifyCallback(notifyCallback);
-
 }
 
 void loop() {
@@ -48,12 +50,25 @@ void loop() {
     }
     else {
       if (M5.BtnA.wasReleased()) {
-        Serial.printf("A released\n");
         dispFrame.select_measure_next();
       }
       else if (M5.BtnB.wasReleased()) {
-        Serial.printf("B released\n");
         mStatus = DISP_STATUS_EDIT;
+        kbd.setup();
+        while (kbd.loop()) {
+          delay(1);
+        }
+        String min_str = kbd.getString_1();
+        String max_str = kbd.getString_2();
+        kbd.close();
+        if(dispFrame.disp_range(min_str, max_str) < 0) {
+          // エラー表示
+        }
+        mStatus = DISP_STATUS_MEASURED;
+        dispFrame.display_frame(true);
+      }
+      else if (M5.BtnC.wasReleased()) {
+        dispFrame.saveData();
       }
     }
   }

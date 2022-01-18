@@ -2,6 +2,7 @@
 #define DISPFRAME_H
 
 #include <M5Stack.h>
+#include <ButtonDrawer.h>
 
 typedef enum {
   MEASUARED_VALUE_A = 0,
@@ -36,20 +37,24 @@ class DispFrame {
 private:
   uint16_t m_bg_color = BLACK;
 
-  uint8_t m_focus_idx = MEASUARED_VALUE_A;
+  SELECT_IDX m_focus_idx = MEASUARED_VALUE_A;
+
+  ButtonDrawer _btnDrawer;
 
   void display_measure(uint8_t idx);
   void display_frame_fixed();
   void display_frame_measured();
+  void re_disp_measured(SELECT_IDX idx);
 
 public:
-  DispFrame();
+  void init();
   void disp_connecting();
-  void display_frame();
+  void display_frame(bool withMeasured = false);
   void select_measure_next();
   void disp_measured(char* data);
   void disp_range(SELECT_IDX idx);
-
+  int disp_range(String min, String max);
+  void saveData();
 };
 
 extern DispFrame dispFrame;

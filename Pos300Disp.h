@@ -4,6 +4,7 @@
 #include <M5Stack.h>
 #include <BlePos300.h>
 #include <DispFrame.h>
+#include <Keyboard.h>
 
 typedef enum {
   DISP_STATUS_NOT_CONNECT = 0,

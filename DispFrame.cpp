@@ -1,5 +1,8 @@
 #include "DispFrame.h"
 #include <jpeg.h>
+#include <Data.h>
+
+Data m_Data;
 
 void
 DispFrame::display_measure(uint8_t idx) {
@@ -54,8 +57,9 @@ DispFrame::display_measure(uint8_t idx) {
   M5.Lcd.drawJpg(jpg, sizeof(jpg), x, y, w, h);
 }
 
-DispFrame::DispFrame(){
-
+void
+DispFrame::init(){
+  m_Data.setup();
 }
 
 
@@ -87,18 +91,76 @@ void DispFrame::disp_connecting() {
     M5.Lcd.drawJpg(connecting, sizeof(connecting), 85, 105, 150, 30);
 }
 
-void DispFrame::display_frame() {
+void DispFrame::display_frame(bool withMeasured) {
   M5.Lcd.clearDisplay(m_bg_color);
   display_frame_fixed();
+  _btnDrawer.setText("SelMeasure", "Edit", "Save");
+  _btnDrawer.draw(true);
+  if(withMeasured) {
+    M5.Lcd.startWrite();
+    re_disp_measured(MEASUARED_VALUE_A);
+    re_disp_measured(MEASUARED_VALUE_B);
+    re_disp_measured(MEASUARED_VALUE_C);
+    M5.Lcd.endWrite();
+  }
+}
+
+void DispFrame::re_disp_measured(SELECT_IDX idx) {
+  uint16_t y;
+  const char *unit = " mm";
+  DATA_IDX dataIdx = DATA_IDX_A;
+
+  switch(idx) {
+    case MEASUARED_VALUE_A:
+      y = MEASURE_A_POS_Y;
+      dataIdx = DATA_IDX_A;
+      break;
+    case MEASUARED_VALUE_B:
+      y = MEASURE_B_POS_Y;
+      dataIdx = DATA_IDX_B;
+      break;
+    case MEASUARED_VALUE_C:
+      y = MEASURE_C_POS_Y;
+      dataIdx = DATA_IDX_C;
+      break;
+    default:
+      return;
+  }
+
+  String str = String(m_Data.getMeasuredValue(dataIdx));
+
+  int data_len = str.length();
+
+  int space_len = 5 - data_len;
+  String disp_str = "";
+  for(int i=0; i<space_len; i++) {
+    disp_str += " ";
+  }
+  disp_str += str;
+  disp_str += unit;
+
+  M5.Lcd.setTextSize(2);
+
+  M5.Lcd.fillRect(MEASURE_VALUE_POS_X, y, MEASURE_VALUE_WIDTH, MEASURE_VALUE_HEIGHT, m_bg_color);
+  M5.Lcd.drawString(disp_str, MEASURE_VALUE_POS_X, y + (MEASURE_VALUE_HEIGHT-M5.Lcd.fontHeight())/2);
+
+  M5.Lcd.setTextSize(1);
 }
 
 void DispFrame::select_measure_next() {
-  if(m_focus_idx >= MEASUARED_VALUE_C) {
-    m_focus_idx = MEASUARED_VALUE_A;
+  switch(m_focus_idx) {
+    case MEASUARED_VALUE_A:
+      m_focus_idx = MEASUARED_VALUE_B;
+      break;
+    case MEASUARED_VALUE_B:
+      m_focus_idx = MEASUARED_VALUE_C;
+      break;
+    default:
+    case MEASUARED_VALUE_C:
+      m_focus_idx = MEASUARED_VALUE_A;
+      break;
   }
-  else {
-    m_focus_idx++;
-  }
+
   M5.Lcd.startWrite();
   M5.Lcd.setWindow(0, 0, 320, 240);
   M5.Lcd.fillRect(MEASURE_TITLE_POS_X, MEASURE_A_POS_Y, MEASURE_TITLE_WIDTH, MEASURE_C_POS_Y + MEASURE_TITLE_HEIGHT - MEASURE_A_POS_Y, m_bg_color);
@@ -112,16 +174,20 @@ void DispFrame::disp_measured(char* data) {
   uint16_t y;
   const char *prefix = "L ";
   const char *unit = " mm";
+  DATA_IDX dataIdx = DATA_IDX_A;
 
   switch(m_focus_idx) {
     case MEASUARED_VALUE_A:
       y = MEASURE_A_POS_Y;
+      dataIdx = DATA_IDX_A;
       break;
     case MEASUARED_VALUE_B:
       y = MEASURE_B_POS_Y;
+      dataIdx = DATA_IDX_B;
       break;
     case MEASUARED_VALUE_C:
       y = MEASURE_C_POS_Y;
+      dataIdx = DATA_IDX_C;
       break;
     default:
       return;
@@ -138,18 +204,25 @@ void DispFrame::disp_measured(char* data) {
     Serial.println("no data  mm");
     return;
   }
-  int space_len = pos2 - pos1;
-  space_len = 5 - space_len;
-  String measured_str = "";
-  for(int i=0; i<space_len; i++) {
-    measured_str += " ";
+  int data_len = pos2 - pos1;
+  String measured_str = str.substr(pos1, data_len).c_str();
+  if(m_Data.setMeasuredValue(dataIdx, measured_str) < 0) {
+    // エラー表示に切り替える
+    return;
   }
-  measured_str += str.substr(pos1).c_str();
+
+  int space_len = 5 - data_len;
+  String disp_str = "";
+  for(int i=0; i<space_len; i++) {
+    disp_str += " ";
+  }
+  disp_str += measured_str;
+  disp_str += unit;
 
   M5.Lcd.setTextSize(2);
 
   M5.Lcd.fillRect(MEASURE_VALUE_POS_X, y, MEASURE_VALUE_WIDTH, MEASURE_VALUE_HEIGHT, m_bg_color);
-  M5.Lcd.drawString(measured_str, MEASURE_VALUE_POS_X, y + (MEASURE_VALUE_HEIGHT-M5.Lcd.fontHeight())/2);
+  M5.Lcd.drawString(disp_str, MEASURE_VALUE_POS_X, y + (MEASURE_VALUE_HEIGHT-M5.Lcd.fontHeight())/2);
 
   M5.Lcd.setTextSize(1);
 }
@@ -162,26 +235,30 @@ void DispFrame::disp_range(SELECT_IDX idx) {
   const char *divStr = " - ";
   const char *unitStr = " mm";
   String min_str, max_str;
+  DATA_IDX dataIdx = DATA_IDX_A;
+  int range_min = 0, range_max = 0;
+
   M5.Lcd.setTextSize(1);
+
   switch(idx) {
     case MEASUARED_VALUE_A:
       y = MEASURE_A_POS_Y;
-      min_str = "1000";
-      max_str = "10000";
+      dataIdx = DATA_IDX_A;
       break;
     case MEASUARED_VALUE_B:
       y = MEASURE_B_POS_Y;
-      min_str = "0";
-      max_str = "10";
+      dataIdx = DATA_IDX_B;
       break;
     case MEASUARED_VALUE_C:
       y = MEASURE_C_POS_Y;
-      min_str = "300";
-      max_str = "99999";
+      dataIdx = DATA_IDX_C;
       break;
     default:
       return;
   }
+  m_Data.getRangeData(dataIdx, &range_min, &range_max);
+  min_str = String(range_min);
+  max_str = String(range_max);
 
   M5.Lcd.fillRect(x, y, w, h, m_bg_color);
   y = y + (h-M5.Lcd.fontHeight())/2;
@@ -192,6 +269,35 @@ void DispFrame::disp_range(SELECT_IDX idx) {
   M5.Lcd.drawRightString(max_str, x + MEASURE_RANGE_VAL_WIDTH, y, 1);
   x += MEASURE_RANGE_VAL_WIDTH;
   M5.Lcd.drawCentreString(unitStr, x + MEASURE_RANGE_UNIT_WIDTH/2, y, 1);
+}
+
+int DispFrame::disp_range(String min, String max) {
+  DATA_IDX dataIdx;
+
+  switch(m_focus_idx) {
+    case MEASUARED_VALUE_A:
+      dataIdx = DATA_IDX_A;
+      break;
+    case MEASUARED_VALUE_B:
+      dataIdx = DATA_IDX_B;
+      break;
+    case MEASUARED_VALUE_C:
+      dataIdx = DATA_IDX_C;
+      break;
+    default:
+      return -1;
+  }
+  if(m_Data.setRangeData(dataIdx, min, max) < 0) {
+    // データセット失敗
+    return -1;
+  }
+
+  disp_range(m_focus_idx);
+  return 0;
+}
+
+void DispFrame::saveData() {
+  m_Data.save();
 }
 
 DispFrame dispFrame;

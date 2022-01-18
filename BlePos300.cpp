@@ -26,12 +26,12 @@ static void notifyCallback(
   uint8_t* pData,
   size_t length,
   bool isNotify) {
-    Serial.print("Notify callback for characteristic ");
-    Serial.print(pBLERemoteCharacteristic->getUUID().toString().c_str());
-    Serial.print(" of data length ");
-    Serial.println(length);
-    Serial.print("data: ");
-    Serial.println((char*)pData);
+    // Serial.print("Notify callback for characteristic ");
+    // Serial.print(pBLERemoteCharacteristic->getUUID().toString().c_str());
+    // Serial.print(" of data length ");
+    // Serial.println(length);
+    // Serial.print("data: ");
+    // Serial.println((char*)pData);
     if(m_notifyCallback != NULL) {
       m_notifyCallback((char*)pData);
     }
