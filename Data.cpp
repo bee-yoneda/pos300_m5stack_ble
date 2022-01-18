@@ -3,7 +3,6 @@
 #include <sstream>
 #include "Data.h"
 #include "SPIFFS.h"
-#include "SD.h"
 
 #define FORMAT_SPIFFS_IF_FAILED true
 #define RANGE_DATA_FILE_NAME "/range_data.csv"

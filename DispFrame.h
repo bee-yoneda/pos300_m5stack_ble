@@ -45,6 +45,7 @@ private:
   void display_frame_fixed();
   void display_frame_measured();
   void re_disp_measured(SELECT_IDX idx);
+  void display_err();
 
 public:
   void init();

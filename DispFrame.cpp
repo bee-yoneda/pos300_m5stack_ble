@@ -87,8 +87,14 @@ DispFrame::display_frame_fixed(){
 }
 
 void DispFrame::disp_connecting() {
-    M5.Lcd.clearDisplay(m_bg_color);
-    M5.Lcd.drawJpg(connecting, sizeof(connecting), 85, 105, 150, 30);
+  M5.Lcd.clearDisplay(m_bg_color);
+#if 0
+  M5.Lcd.setTextSize(4);
+  M5.Lcd.drawString("CONNECTING", 40, 100);
+  M5.Lcd.setTextSize(1);
+#else
+  M5.Lcd.drawJpg(connecting, sizeof(connecting), 85, 105, 150, 30);
+#endif
 }
 
 void DispFrame::display_frame(bool withMeasured) {
@@ -127,7 +133,12 @@ void DispFrame::re_disp_measured(SELECT_IDX idx) {
       return;
   }
 
-  String str = String(m_Data.getMeasuredValue(dataIdx));
+  int measured = m_Data.getMeasuredValue(dataIdx);
+  if(measured < 0) {
+    Serial.println("still not set measured");
+    return;
+  }
+  String str = String(measured);
 
   int data_len = str.length();
 
@@ -145,6 +156,16 @@ void DispFrame::re_disp_measured(SELECT_IDX idx) {
   M5.Lcd.drawString(disp_str, MEASURE_VALUE_POS_X, y + (MEASURE_VALUE_HEIGHT-M5.Lcd.fontHeight())/2);
 
   M5.Lcd.setTextSize(1);
+}
+
+void DispFrame::display_err() {
+  uint16_t org_color = m_bg_color;
+  m_bg_color = RED;
+  display_frame(true);
+  M5.Speaker.beep();
+  delay(1000);
+  m_bg_color = org_color;
+  display_frame(true);
 }
 
 void DispFrame::select_measure_next() {
@@ -208,6 +229,7 @@ void DispFrame::disp_measured(char* data) {
   String measured_str = str.substr(pos1, data_len).c_str();
   if(m_Data.setMeasuredValue(dataIdx, measured_str) < 0) {
     // エラー表示に切り替える
+    display_err();
     return;
   }
 
@@ -289,6 +311,7 @@ int DispFrame::disp_range(String min, String max) {
   }
   if(m_Data.setRangeData(dataIdx, min, max) < 0) {
     // データセット失敗
+    M5.Speaker.beep();
     return -1;
   }
 
