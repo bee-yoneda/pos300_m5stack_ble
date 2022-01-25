@@ -20,6 +20,73 @@
 #define CSV_RANGE_KIND_C "range_C"
 
 void
+Data::setup() {
+  if(!SPIFFS.begin(FORMAT_SPIFFS_IF_FAILED)){
+    Serial.println("SPIFFS Mount Failed");
+    return;
+  }
+
+  loadData();
+}
+
+int
+Data::setRangeData(DATA_IDX idx, const int min, const int max) {
+  // check range
+  if(min >= max) {
+    return -1;
+  }
+  m_range_data[idx].setRange(min, max);
+  return 0;
+}
+
+int
+Data::setRangeData(DATA_IDX idx, const String& min, const String& max) {
+  int min_num, max_num;
+
+  min_num = atoi(min.c_str());
+  max_num = atoi(max.c_str());
+
+  return setRangeData(idx, min_num, max_num);
+}
+
+void
+Data::getRangeData(DATA_IDX idx, int *min, int *max) {
+  m_range_data[idx].getRange(min, max);
+}
+
+int
+Data::setMeasuredValue(DATA_IDX idx, const int val) {
+  int min, max;
+  int ret = 0;
+  m_range_data[idx].getRange(&min, &max);
+  // range over
+  if(val < min || max < val) {
+    ret = -1;
+  }
+  measured_value[idx] = val;
+  return ret;
+}
+
+int
+Data::setMeasuredValue(DATA_IDX idx, const String& val){
+  int val_num;
+
+  val_num = atoi(val.c_str());
+
+  return setMeasuredValue(idx, val_num);
+}
+
+int
+Data::getMeasuredValue(DATA_IDX idx) {
+  return measured_value[idx];
+}
+
+void
+Data::save() {
+  saveData();
+}
+
+void
 Data::loadData() {
   fs::FS fs = SPIFFS;
 
@@ -150,71 +217,4 @@ Data::saveData() {
   file.write((uint8_t*)cstr, size+1);
   file.close();
   delete[] cstr;
-}
-
-void
-Data::setup() {
-  if(!SPIFFS.begin(FORMAT_SPIFFS_IF_FAILED)){
-    Serial.println("SPIFFS Mount Failed");
-    return;
-  }
-
-  loadData();
-}
-
-int
-Data::setRangeData(DATA_IDX idx, const int min, const int max) {
-  // check range
-  if(min >= max) {
-    return -1;
-  }
-  m_range_data[idx].setRange(min, max);
-  return 0;
-}
-
-int
-Data::setRangeData(DATA_IDX idx, const String& min, const String& max) {
-  int min_num, max_num;
-
-  min_num = atoi(min.c_str());
-  max_num = atoi(max.c_str());
-
-  return setRangeData(idx, min_num, max_num);
-}
-
-void
-Data::getRangeData(DATA_IDX idx, int *min, int *max) {
-  m_range_data[idx].getRange(min, max);
-}
-
-int
-Data::setMeasuredValue(DATA_IDX idx, const int val) {
-  int min, max;
-  int ret = 0;
-  m_range_data[idx].getRange(&min, &max);
-  // range over
-  if(val < min || max < val) {
-    ret = -1;
-  }
-  measured_value[idx] = val;
-  return ret;
-}
-
-int
-Data::setMeasuredValue(DATA_IDX idx, const String& val){
-  int val_num;
-
-  val_num = atoi(val.c_str());
-
-  return setMeasuredValue(idx, val_num);
-}
-
-int
-Data::getMeasuredValue(DATA_IDX idx) {
-  return measured_value[idx];
-}
-
-void
-Data::save() {
-  saveData();
 }

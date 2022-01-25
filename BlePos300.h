@@ -14,9 +14,6 @@ typedef enum {
 
 
 class BlePos300 {
-private:
-  bool connectToServer();
-
 public:
   BlePos300();
 
@@ -25,6 +22,9 @@ public:
   void doConnect();
   void disConnect();
   BLE_STATUS getStatus();
+
+private:
+  bool connectToServer();
 };
 
 extern BlePos300 blepos300;

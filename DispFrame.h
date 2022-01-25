@@ -34,6 +34,15 @@ typedef enum {
 #define MEASURE_RANGE_HEIGHT MEASURE_VALUE_HEIGHT
 
 class DispFrame {
+public:
+  void init();
+  void disp_connecting();
+  void display_frame(bool withMeasured = false);
+  void select_measure_next();
+  void disp_measured(char* data);
+  int disp_range(String min, String max);
+  void saveData();
+
 private:
   uint16_t m_bg_color = BLACK;
 
@@ -41,21 +50,11 @@ private:
 
   ButtonDrawer _btnDrawer;
 
-  void display_measure(uint8_t idx);
-  void display_frame_fixed();
-  void display_frame_measured();
-  void re_disp_measured(SELECT_IDX idx);
+  void display_measure_title(uint8_t idx);
+  void display_fixed();
+  void re_display_measured(SELECT_IDX idx);
+  void display_range(SELECT_IDX idx);
   void display_err();
-
-public:
-  void init();
-  void disp_connecting();
-  void display_frame(bool withMeasured = false);
-  void select_measure_next();
-  void disp_measured(char* data);
-  void disp_range(SELECT_IDX idx);
-  int disp_range(String min, String max);
-  void saveData();
 };
 
 extern DispFrame dispFrame;

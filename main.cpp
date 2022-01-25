@@ -62,7 +62,7 @@ void loop() {
         String max_str = kbd.getString_2();
         kbd.close();
         if(dispFrame.disp_range(min_str, max_str) < 0) {
-          // エラー表示
+          // エラー表示？今は何もしない
         }
         mStatus = DISP_STATUS_MEASURED;
         dispFrame.display_frame(true);

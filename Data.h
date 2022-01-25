@@ -39,18 +39,6 @@ typedef enum {
 } DATA_IDX;
 
 class Data {
-private:
-  RangeData m_range_data[DATA_IDX_MAX] =
-  {
-    {RANGE_VALUE_A_MIN, RANGE_VALUE_A_MAX},
-    {RANGE_VALUE_B_MIN, RANGE_VALUE_B_MAX},
-    {RANGE_VALUE_C_MIN, RANGE_VALUE_C_MAX}
-  };
-  int measured_value[DATA_IDX_MAX] = {-1, -1, -1};
-
-  void loadData();
-  void saveData();
-
 public:
   void setup();
   int setRangeData(DATA_IDX idx, const int min, const int max);
@@ -62,5 +50,17 @@ public:
   int getMeasuredValue(DATA_IDX idx);
 
   void save();
+
+private:
+  RangeData m_range_data[DATA_IDX_MAX] =
+  {
+    {RANGE_VALUE_A_MIN, RANGE_VALUE_A_MAX},
+    {RANGE_VALUE_B_MIN, RANGE_VALUE_B_MAX},
+    {RANGE_VALUE_C_MIN, RANGE_VALUE_C_MAX}
+  };
+  int measured_value[DATA_IDX_MAX] = {-1, -1, -1};
+
+  void loadData();
+  void saveData();
 };
 #endif // DATA

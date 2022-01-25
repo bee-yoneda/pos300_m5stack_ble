@@ -15,11 +15,6 @@ static BLEAdvertisedDevice* m_Device;
 static BLEClient*  m_pClient;
 static ble_notify_callback m_notifyCallback;
 
-BlePos300::BlePos300() {
-  m_Status = BLE_STATUS_NOT_CONNECT;
-  m_notifyCallback = NULL;
-}
-
 static void notifyCallback(
   BLERemoteCharacteristic* pBLERemoteCharacteristic,
   uint8_t* pData,
@@ -47,56 +42,6 @@ class MyClientCallback : public BLEClientCallbacks {
   }
 };
 
-bool BlePos300::connectToServer() {
-  m_pClient  = BLEDevice::createClient();
-  Serial.println(" - Created client");
-
-  m_pClient->setClientCallbacks(new MyClientCallback());
-
-  // Connect to the remove BLE Server.
-  m_pClient->connect(m_Device);
-  Serial.println(" - Connected to server");
-
-  // Obtain a reference to the service we are after in the remote BLE server.
-  BLERemoteService* pRemoteService = m_pClient->getService(serviceUUID);
-  if (pRemoteService == nullptr) {
-    Serial.print("Failed to find service UUID: ");
-    Serial.println(serviceUUID.toString().c_str());
-    m_pClient->disconnect();
-    return false;
-  }
-
-  // Obtain a reference to the characteristic in the service of the remote BLE server.
-  m_pRemoteNotifyCharacteristic = pRemoteService->getCharacteristic(NotifyCharUUID);
-  if (m_pRemoteNotifyCharacteristic == nullptr) {
-    Serial.print("Failed to find characteristic UUID: ");
-    Serial.println(NotifyCharUUID.toString().c_str());
-    m_pClient->disconnect();
-    return false;
-  }
-  m_pRemoteWriteCharacteristic = pRemoteService->getCharacteristic(WriteCharUUID);
-  if (m_pRemoteWriteCharacteristic == nullptr) {
-    Serial.print("Failed to find characteristic UUID: ");
-    Serial.println(WriteCharUUID.toString().c_str());
-    m_pClient->disconnect();
-    return false;
-  }
-
-  // Read the value of the characteristic.
-  if(m_pRemoteNotifyCharacteristic->canRead()) {
-    std::string value = m_pRemoteNotifyCharacteristic->readValue();
-    Serial.print("The characteristic value was: ");
-    Serial.println(value.c_str());
-  }
-
-  if(m_pRemoteNotifyCharacteristic->canNotify())
-    m_pRemoteNotifyCharacteristic->registerForNotify(notifyCallback);
-
-  Serial.println(" - Success");
-
-  return true;
-}
-
 /**
  * Scan for BLE servers and find the first one that advertises the service we are looking for.
  */
@@ -116,6 +61,10 @@ class MyAdvertisedDeviceCallbacks: public BLEAdvertisedDeviceCallbacks {
   }
 };
 
+BlePos300::BlePos300() {
+  m_Status = BLE_STATUS_NOT_CONNECT;
+  m_notifyCallback = NULL;
+}
 
 void BlePos300::setup() {
   BLEDevice::init("");
@@ -168,6 +117,56 @@ void BlePos300::disConnect() {
 
 BLE_STATUS BlePos300::getStatus() {
   return m_Status;
+}
+
+bool BlePos300::connectToServer() {
+  m_pClient  = BLEDevice::createClient();
+  Serial.println(" - Created client");
+
+  m_pClient->setClientCallbacks(new MyClientCallback());
+
+  // Connect to the remove BLE Server.
+  m_pClient->connect(m_Device);
+  Serial.println(" - Connected to server");
+
+  // Obtain a reference to the service we are after in the remote BLE server.
+  BLERemoteService* pRemoteService = m_pClient->getService(serviceUUID);
+  if (pRemoteService == nullptr) {
+    Serial.print("Failed to find service UUID: ");
+    Serial.println(serviceUUID.toString().c_str());
+    m_pClient->disconnect();
+    return false;
+  }
+
+  // Obtain a reference to the characteristic in the service of the remote BLE server.
+  m_pRemoteNotifyCharacteristic = pRemoteService->getCharacteristic(NotifyCharUUID);
+  if (m_pRemoteNotifyCharacteristic == nullptr) {
+    Serial.print("Failed to find characteristic UUID: ");
+    Serial.println(NotifyCharUUID.toString().c_str());
+    m_pClient->disconnect();
+    return false;
+  }
+  m_pRemoteWriteCharacteristic = pRemoteService->getCharacteristic(WriteCharUUID);
+  if (m_pRemoteWriteCharacteristic == nullptr) {
+    Serial.print("Failed to find characteristic UUID: ");
+    Serial.println(WriteCharUUID.toString().c_str());
+    m_pClient->disconnect();
+    return false;
+  }
+
+  // Read the value of the characteristic.
+  if(m_pRemoteNotifyCharacteristic->canRead()) {
+    std::string value = m_pRemoteNotifyCharacteristic->readValue();
+    Serial.print("The characteristic value was: ");
+    Serial.println(value.c_str());
+  }
+
+  if(m_pRemoteNotifyCharacteristic->canNotify())
+    m_pRemoteNotifyCharacteristic->registerForNotify(notifyCallback);
+
+  Serial.println(" - Success");
+
+  return true;
 }
 
 BlePos300 blepos300;
