@@ -1,6 +1,6 @@
 #include "DispFrame.h"
-#include <jpeg.h>
-#include <Data.h>
+#include "jpeg.h"
+#include "Data.h"
 
 Data m_Data;
 
