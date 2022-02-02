@@ -39,7 +39,7 @@ public:
   void disp_connecting();
   void display_frame(bool withMeasured = false);
   void select_measure_next();
-  void disp_measured(char* data);
+  void disp_measured(char* data, char* play_data);
   int disp_range(String min, String max);
   void saveData();
 

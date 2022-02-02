@@ -61,7 +61,7 @@ DispFrame::select_measure_next() {
 }
 
 void
-DispFrame::disp_measured(char* data) {
+DispFrame::disp_measured(char* data, char* play_data) {
   uint16_t y;
   const char *prefix = "L ";
   const char *unit = " mm";
@@ -87,21 +87,19 @@ DispFrame::disp_measured(char* data) {
   int pos1 = str.find(prefix);
   if(pos1 == std::string::npos) {
     Serial.println("no data L ");
-    return;
   }
   pos1 += strlen(prefix);
   int pos2 = str.rfind(unit);
   if(pos2 == std::string::npos) {
     Serial.println("no data  mm");
-    return;
   }
   int data_len = pos2 - pos1;
   String measured_str = str.substr(pos1, data_len).c_str();
   if(m_Data.setMeasuredValue(dataIdx, measured_str) < 0) {
     // エラー表示に切り替える
     display_err();
-    return;
   }
+  strcpy(play_data, measured_str.c_str());
 
   int space_len = 5 - data_len;
   String disp_str = "";
