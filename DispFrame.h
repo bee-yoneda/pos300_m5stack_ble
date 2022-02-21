@@ -10,6 +10,11 @@ typedef enum {
   MEASUARED_VALUE_C,
 } SELECT_IDX;
 
+typedef enum {
+  MEASUARED_SELECT_AUTO = 0,
+  MEASUARED_SELECT_MANUAL,
+} SELECT_MODE;
+
 #define MEASURE_TITLE_POS_X 20
 #define MEASURE_A_POS_Y 90
 #define MEASURE_B_POS_Y 130
@@ -42,11 +47,15 @@ public:
   void disp_measured(char* data, char* play_data);
   int disp_range(String min, String max);
   void saveData();
+  void change_select_mode();
+  SELECT_MODE get_select_mode();
+  void disp_button();
 
 private:
   uint16_t m_bg_color = BLACK;
 
   SELECT_IDX m_focus_idx = MEASUARED_VALUE_A;
+  SELECT_MODE m_select_mode = MEASUARED_SELECT_AUTO;
 
   ButtonDrawer _btnDrawer;
 

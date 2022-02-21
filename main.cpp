@@ -20,6 +20,16 @@ Keyboard kbd;
 #define LEN_FRAME 32
 uint32_t workbuf[AQ_SIZE_WORKBUF];
 
+typedef enum {
+  NORMAL = 0,
+  PRESS,
+  HOLD
+} KEY_STATUS;
+
+uint32_t currMsec = 0;
+uint32_t lastMsec = 0;
+KEY_STATUS pressAbtn = NORMAL;
+
 ////////////////////////////////
 //  i2s configuration 
 #define  SAMPLING_FREQ   8000 // 8KHz
@@ -177,7 +187,7 @@ void setup() {
 }
 
 void loop() {
-    BLE_STATUS ble_st;
+  BLE_STATUS ble_st;
 
   if(mStatus == DISP_STATUS_NOT_CONNECT) {
     blepos300.doConnect();
@@ -202,8 +212,36 @@ void loop() {
       dispFrame.disp_connecting();
     }
     else {
+      if (M5.BtnA.isPressed()) {
+        switch(pressAbtn) {
+          case NORMAL:
+            lastMsec = millis();
+            pressAbtn = PRESS;
+            break;
+          case PRESS:
+            currMsec = millis();
+            // Serial.printf(" curr = %lu, last = %lu, diff = %d \n", currMsec, lastMsec, currMsec - lastMsec);
+            if(currMsec - lastMsec > 500) {
+              pressAbtn = HOLD;
+              currMsec = lastMsec = 0;
+            }
+            break;
+          default:
+          case HOLD:
+            break;
+        }
+      }
       if (M5.BtnA.wasReleased()) {
-        dispFrame.select_measure_next();
+        if(pressAbtn == HOLD) {
+          dispFrame.change_select_mode();
+        }
+        else {
+          if(dispFrame.get_select_mode() == MEASUARED_SELECT_MANUAL) {
+            dispFrame.select_measure_next();
+          }
+        }
+        pressAbtn = NORMAL;
+        currMsec = lastMsec = 0;
       }
       else if (M5.BtnB.wasReleased()) {
         mStatus = DISP_STATUS_EDIT;

@@ -25,8 +25,7 @@ void
 DispFrame::display_frame(bool withMeasured) {
   M5.Lcd.clearDisplay(m_bg_color);
   display_fixed();
-  _btnDrawer.setText("SelMeasure", "Edit", "Save");
-  _btnDrawer.draw(true);
+  disp_button();
   if(withMeasured) {
     M5.Lcd.startWrite();
     re_display_measured(MEASUARED_VALUE_A);
@@ -66,6 +65,7 @@ DispFrame::disp_measured(char* data, char* play_data) {
   const char *prefix = "L ";
   const char *unit = " mm";
   DATA_IDX dataIdx = DATA_IDX_A;
+  int ret = 0;
 
   switch(m_focus_idx) {
     case MEASUARED_VALUE_A:
@@ -95,7 +95,8 @@ DispFrame::disp_measured(char* data, char* play_data) {
   }
   int data_len = pos2 - pos1;
   String measured_str = str.substr(pos1, data_len).c_str();
-  if(m_Data.setMeasuredValue(dataIdx, measured_str) < 0) {
+  ret = m_Data.setMeasuredValue(dataIdx, measured_str);
+  if(ret < 0) {
     // エラー表示に切り替える
     display_err();
   }
@@ -115,6 +116,11 @@ DispFrame::disp_measured(char* data, char* play_data) {
   M5.Lcd.drawString(disp_str, MEASURE_VALUE_POS_X, y + (MEASURE_VALUE_HEIGHT-M5.Lcd.fontHeight())/2);
 
   M5.Lcd.setTextSize(1);
+
+  // 自動切換えモード中は、次にフォーカスを移す
+  if(ret >= 0 && m_select_mode == MEASUARED_SELECT_AUTO) {
+    select_measure_next();
+  }
 }
 
 int
@@ -147,6 +153,45 @@ DispFrame::disp_range(String min, String max) {
 void
 DispFrame::saveData() {
   m_Data.save();
+}
+
+void
+DispFrame::change_select_mode() {
+  switch(m_select_mode) {
+    default:
+    case MEASUARED_SELECT_AUTO:
+      m_select_mode = MEASUARED_SELECT_MANUAL;
+      break;
+    case MEASUARED_SELECT_MANUAL:
+      m_select_mode = MEASUARED_SELECT_AUTO;
+      break;
+  }
+  disp_button();
+}
+
+SELECT_MODE
+DispFrame::get_select_mode() {
+  return m_select_mode;
+}
+
+void
+DispFrame::disp_button() {
+  if(m_select_mode == MEASUARED_SELECT_MANUAL) {
+    _btnDrawer.setText("SelMeasure", "Edit", "Save");
+  }
+  else {
+    _btnDrawer.setText("---", "Edit", "Save");
+  }
+  Serial.printf(" disp_button \n");
+  _btnDrawer.draw(true);
+  if(m_select_mode == MEASUARED_SELECT_MANUAL) {
+    M5.Lcd.drawJpg(mode_manual, sizeof(mode_manual),
+                    25, 52, 60, 26);
+  }
+  else {
+    M5.Lcd.drawJpg(mode_auto, sizeof(mode_auto),
+                    25, 52, 60, 26);
+  }
 }
 
 void
