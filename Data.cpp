@@ -58,12 +58,14 @@ int
 Data::setMeasuredValue(DATA_IDX idx, const int val) {
   int min, max;
   int ret = 0;
+  bool err = false;
   m_range_data[idx].getRange(&min, &max);
   // range over
   if(val < min || max < val) {
     ret = -1;
+    err = true;
   }
-  measured_value[idx] = val;
+  m_measured_data[idx].setData(val, err);
   return ret;
 }
 
@@ -76,9 +78,9 @@ Data::setMeasuredValue(DATA_IDX idx, const String& val){
   return setMeasuredValue(idx, val_num);
 }
 
-int
-Data::getMeasuredValue(DATA_IDX idx) {
-  return measured_value[idx];
+void
+Data::getMeasuredValue(DATA_IDX idx, int *value, bool *err) {
+  m_measured_data[idx].getData(value, err);
 }
 
 void

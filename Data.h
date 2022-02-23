@@ -31,6 +31,27 @@ public:
   }
 };
 
+class MeasuredData {
+private:
+  int m_value;
+  bool m_err;
+
+public:
+  MeasuredData(int value, bool err=false) {
+    m_value = value;
+    m_err = err;
+  }
+
+  void setData(int value, bool err=false) {
+    m_value = value;
+    m_err = err;
+  }
+  void getData(int *value, bool *err) {
+    *value = m_value;
+    *err = m_err;
+  }
+};
+
 typedef enum {
   DATA_IDX_A = 0,
   DATA_IDX_B,
@@ -47,7 +68,7 @@ public:
 
   int setMeasuredValue(DATA_IDX idx, const int val);
   int setMeasuredValue(DATA_IDX idx, const String& val);
-  int getMeasuredValue(DATA_IDX idx);
+  void getMeasuredValue(DATA_IDX idx, int *value, bool *err);
 
   void save();
 
@@ -58,7 +79,12 @@ private:
     {RANGE_VALUE_B_MIN, RANGE_VALUE_B_MAX},
     {RANGE_VALUE_C_MIN, RANGE_VALUE_C_MAX}
   };
-  int measured_value[DATA_IDX_MAX] = {-1, -1, -1};
+  MeasuredData m_measured_data[DATA_IDX_MAX] =
+  {
+    {-1},
+    {-1},
+    {-1}
+  };
 
   void loadData();
   void saveData();

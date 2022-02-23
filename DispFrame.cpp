@@ -113,12 +113,19 @@ DispFrame::disp_measured(char* data, char* play_data) {
   M5.Lcd.setTextSize(2);
 
   M5.Lcd.fillRect(MEASURE_VALUE_POS_X, y, MEASURE_VALUE_WIDTH, MEASURE_VALUE_HEIGHT, m_bg_color);
+  uint16_t org_fg_color = m_fg_color;
+  if(ret < 0) {
+    m_fg_color = RED;
+  }
+  M5.Lcd.setTextColor(m_fg_color);
   M5.Lcd.drawString(disp_str, MEASURE_VALUE_POS_X, y + (MEASURE_VALUE_HEIGHT-M5.Lcd.fontHeight())/2);
+  m_fg_color = org_fg_color;
+  M5.Lcd.setTextColor(m_fg_color);
 
   M5.Lcd.setTextSize(1);
 
   // 自動切換えモード中は、次にフォーカスを移す
-  if(ret >= 0 && m_select_mode == MEASUARED_SELECT_AUTO) {
+  if(/*ret >= 0 && */m_select_mode == MEASUARED_SELECT_AUTO) {
     select_measure_next();
   }
 }
@@ -293,7 +300,9 @@ DispFrame::re_display_measured(SELECT_IDX idx) {
       return;
   }
 
-  int measured = m_Data.getMeasuredValue(dataIdx);
+  int measured = -1;
+  bool measure_err = false;
+  m_Data.getMeasuredValue(dataIdx, &measured, &measure_err);
   if(measured < 0) {
     Serial.println("still not set measured");
     return;
@@ -313,7 +322,16 @@ DispFrame::re_display_measured(SELECT_IDX idx) {
   M5.Lcd.setTextSize(2);
 
   M5.Lcd.fillRect(MEASURE_VALUE_POS_X, y, MEASURE_VALUE_WIDTH, MEASURE_VALUE_HEIGHT, m_bg_color);
+  uint16_t org_fg_color = m_fg_color;
+  Serial.printf("measure_err = %d, m_bg_color = %x\n", measure_err, m_bg_color);
+  if(measure_err && m_bg_color != RED) {
+    m_fg_color = RED;
+  }
+  Serial.printf("m_fg_color = %x\n", m_fg_color);
+  M5.Lcd.setTextColor(m_fg_color);
   M5.Lcd.drawString(disp_str, MEASURE_VALUE_POS_X, y + (MEASURE_VALUE_HEIGHT-M5.Lcd.fontHeight())/2);
+  m_fg_color = org_fg_color;
+  M5.Lcd.setTextColor(m_fg_color);
 
   M5.Lcd.setTextSize(1);
 }

@@ -53,6 +53,7 @@ public:
 
 private:
   uint16_t m_bg_color = BLACK;
+  uint16_t m_fg_color = WHITE;
 
   SELECT_IDX m_focus_idx = MEASUARED_VALUE_A;
   SELECT_MODE m_select_mode = MEASUARED_SELECT_AUTO;
